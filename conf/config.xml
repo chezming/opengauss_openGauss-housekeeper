@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<!-- 数据库集群监听IP,与DB集群安装配置文件一致，不含有浮动IP -->
+        <db_listen_addresses>10.88.50.15,10.88.50.14,10.88.50.13</db_listen_addresses>
+        <db_listen_port>26000</db_listen_port>
+        <db_datanode_path> /opt/software/install/data/db1 </db_datanode_path>        
+        <db_user>omm</db_user>
+
+        <float_ip>10.88.50.254</float_ip>
+        <!-- 浮动IP的网卡标签名 -->
+        <floatip_eth>enp0s3:1</floatip_eth>
+
+        <!--gghc端的IP地址 -->
+        <gghc_connect_ip>  10.88.51.164 </gghc_connect_ip>
+        <!-- ssh认证私钥文件路径-->
+        <gghc_private_key_file>/home/gghc/.ssh/id_rsa</gghc_private_key_file>        
+        <gghs_agent_path>gghs/agent.py</gghs_agent_path>  
+        
+        
+        <state_check_period> 10 </state_check_period>
+        <ssh_timeout> 60 </ssh_timeout> 
+        <!-- 支持CRITICAL，ERROR，WARNING，INFO，DEBUG 基本配置 -->
+        <log_level>DEBUG</log_level>
+</config>
