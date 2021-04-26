@@ -1,39 +1,40 @@
 # openGauss-housekeeper
 
 #### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+GGHK（GaussDB Group Housekeeper）工具是中软国际公司全自研开发项目，定位于为Opengauss数据库提供集群管理能力，为Opengauss集群实现自动化的高可用主备节点管理，同时还通过实现浮动IP，为Opengauss集群对外呈现统一的浮动IP服务，使得用户通过浮动IP访问Opengauss数据库集群就像使用单实体数据库一样简单。
 
 #### 软件架构
-软件架构说明
+请参见《GGHK产品描述.pdf》
 
-
+#### 文档说明
+- bin
+  存放可执行脚本文件，包括浮动IP控制脚本和gghc启动脚本
+- build
+  存放软件打包脚本
+- conf
+  存放系统运行配置文件
+- gghc
+  存放gghc模块的python源程序
+- gghs
+  存放gghs模块的python源程序
+- license
+  存放系统license文件
+- release
+  存放版本发布包  
+- COPYRIGHT
+  版权说明文件
+- GGHK产品描述.pdf  
+- GGHK用户手册.pdf
+    
+      
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+请参见《GGHK用户手册.pdf》
 
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+请参见《GGHK用户手册.pdf》
 
 
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+#### 许可证
+MulanPSL-2.0
