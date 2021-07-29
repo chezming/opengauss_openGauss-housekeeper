@@ -18,7 +18,8 @@
         
         
         <state_check_period> 10 </state_check_period>
-        <ssh_timeout> 60 </ssh_timeout> 
+        <!-- 执行远程命令超时时间，建议设置长一些 -->
+        <ssh_timeout> 70 </ssh_timeout>
         <!-- 支持CRITICAL，ERROR，WARNING，INFO，DEBUG 基本配置 -->
         <log_level>DEBUG</log_level>
 </config>

@@ -51,23 +51,46 @@ class DbCluster():
     def buildByQuery(self, clusterInfo):        
         self.clear()
         flag1 = False
-        flag2 = False
+        dbClusterFormater = None
+
         for info in clusterInfo.split("\n"):
+            info = info.strip()
+            if len(info) == 0:
+                continue
+
             if (self.state == ""):                    
                 if "cluster_state" in info:
                     self.state = info.split(":")[-1].strip()
                     flag1 = True
-                else: continue
-                
-            elif(re.findall(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", info) and "|" in info):
-                for nodeInfo in info.split("|"):                    
-                    dbNode = DbNode() 
-                    dbNode.buildByQuery(nodeInfo)
-                    self.nodes.append(dbNode) 
-                    flag2 = True 
- 
+                    continue
+                else:
+                    continue
+            # 判定节点状态是否竖线分割。等于1是为竖线分割，等于2分行显示
+            if dbClusterFormater == None:
+                if re.search(r"(node\s+node_ip\s+instance\s+state\s+\|)+", info) is not None:
+                    dbClusterFormater = "v1"
+                    continue
+                elif re.search(r"(node\s+node_ip\s+port\s+instance\s+state)", info) is not None:
+                    dbClusterFormater = "v2"
+                    continue
+                else:
+                    continue
+
+            # 所有datanode的状态竖线分割
+            if dbClusterFormater == 'v1':
+                if re.search(r"(([0-9]{1,3}\.){3}[0-9]{1,3}.*\|)+", info) != None:
+                    for nodeInfo in info.split("|"):
+                        dbNode = DbNode()
+                        dbNode.buildByQuery(nodeInfo, dbClusterFormater)
+                        self.nodes.append(dbNode)
+            # 每个datanode的状态分行显示
+            elif dbClusterFormater == 'v2':
+                dbNode = DbNode()
+                dbNode.buildByQuery(info, dbClusterFormater)
+                self.nodes.append(dbNode)
+
         self.timeStamp = time.localtime()
-        return flag1 and flag2
+        return flag1 and len(self.nodes) > 0
     
     def getPrimaryNodeIds(self):
         nodeIds = []
@@ -109,7 +132,7 @@ class DbCluster():
         for node in self.nodes:
             nodeStr += "%s;" % str(node)
             
-        return  "%s;%s" % (self.state, nodeStr[:-1])
+        return "%s;%s" % (self.state, nodeStr[:-1])
     
     def __deepcopy__(self, memo):
         cls = self.__class__
@@ -118,4 +141,7 @@ class DbCluster():
         for k, v in self.__dict__.items():
             setattr(result, k, copy.deepcopy(v, memo))
         super(DbCluster, result).__init__()
-        return result    
+        return result
+		
+
+

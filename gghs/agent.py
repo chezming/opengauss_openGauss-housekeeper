@@ -89,9 +89,9 @@ def setFloatIpState(state):
         return (False, cmdout)    
     else: return (True, cmdout)
 
-def modifyListenAddress(listenAddr, nodeName):
+def modifyListenAddress(listenAddr, nodeName, datanodePath):
     # 注意下面cmd中的双引号需要转义，否则会与doCommand中bash命令使用的双引号提前匹配
-    cmd = '''gs_guc set -D /opt/software/install/data/db1 -c \\"listen_addresses = '%s'\\" -N %s''' % (listenAddr, nodeName)
+    cmd = '''gs_guc set -D %s -c \\"listen_addresses = '%s'\\" -N %s''' % (datanodePath, listenAddr, nodeName)
     (rst, cmdout) = doCommand(cmd)
     if(not rst): 
         return  (False, cmdout)
@@ -103,14 +103,14 @@ def modifyListenAddress(listenAddr, nodeName):
         return (True, "success modify  %s's listen address to %s" % (nodeName, listenAddr)) 
 
 # 修改节点浮动IP状态
-def modifyNodeFloatIpState(state, nodeListenAddr, nodeName):    
+def modifyNodeFloatIpState(state, nodeListenAddr, nodeName, datanodePath):
     ''' 关闭节点浮动IP'''
     (rst, cmdout1) = setFloatIpState(state)    
     if(not rst):
         return (False, "failed to do floatip down, the reason is\n %s" % cmdout1)
     
     ''' 恢复节点ip地址'''
-    (rst, cmdout2) = modifyListenAddress(nodeListenAddr, nodeName)
+    (rst, cmdout2) = modifyListenAddress(nodeListenAddr, nodeName, datanodePath)
     
     return (rst, "succeed to do floatip %s.\n%s" % (state, cmdout2))
 
@@ -118,23 +118,24 @@ def modifyNodeFloatIpState(state, nodeListenAddr, nodeName):
 def clearNodeFloatIp(argv):
     nodeListenAddr = argv[2]
     nodeName = argv[3]
+    datanodePath = argv[4]
     
     ''' 关闭节点浮动IP'''
-    (rst, cmdout) = modifyNodeFloatIpState("down", nodeListenAddr, nodeName)    
+    (rst, cmdout) = modifyNodeFloatIpState("down", nodeListenAddr, nodeName, datanodePath)
     return "%d#%s" % (int(rst), cmdout)
 
 # CLEAR_NODE_FLOATIP_BUILD
 def clearNodeFloatIpBuild(argv):
     nodeListenAddr = argv[2]
     nodeName = argv[3]
-    
+    datanodePath = argv[4]
+
     ''' 关闭节点浮动IP'''
-    (rst, cmdout1) = modifyNodeFloatIpState("down", nodeListenAddr, nodeName)    
+    (rst, cmdout1) = modifyNodeFloatIpState("down", nodeListenAddr, nodeName, datanodePath)
     if(not rst):
         return "0#%s" % cmdout1    
 
     '''build节点为备节点'''
-    datanodePath = argv[4]
     (rst, cmdout2) = buildStandbyNode(datanodePath)
     return "%d#%s\n%s" % (int(rst), cmdout1, cmdout2)
 
@@ -251,13 +252,13 @@ def setFloatIpFailover(argv):
     '''主备切换'''
     cmd = "gs_ctl failover -D %s" % dataNodePath
     (rst, cmdout) = doCommand(cmd)
-    if(not rst or not("failover completed" in cmdout)):
-        return "0#db cluster failover failed\n%s" % cmdout
+    if(not rst or not("failOver completed" in cmdout)):
+        return "0#db cluster failOver failed\n%s" % cmdout
     
-    msg = "db cluster failover succeed"
+    msg = "db cluster failOver succeed"
     
     '''修改浮动IP'''
-    (rst, cmdout) = modifyNodeFloatIpState("up", nodeListenAddr, nodeName)
+    (rst, cmdout) = modifyNodeFloatIpState("up", nodeListenAddr, nodeName, dataNodePath)
     if(not rst):
         return "2#%s" % cmdout  # 修改浮动IP失败
     
@@ -284,7 +285,7 @@ def primaryAddFloatIp(argv):
     dataNodePath = argv[4]
 
     '''修改浮动IP'''
-    (rst, cmdout) = modifyNodeFloatIpState("up", nodeListenAddr, nodeName)
+    (rst, cmdout) = modifyNodeFloatIpState("up", nodeListenAddr, nodeName, dataNodePath)
     if(not rst):
         return "2#%s" % cmdout  # 修改浮动IP失败
     
@@ -297,12 +298,19 @@ def primaryAddFloatIp(argv):
 
 def forceRecoverPrimaryNode(argv):
     '''
-          将故障前的主节点继续强制恢复为Primary
+    将故障前的主节点继续强制恢复为Primary
     '''
+
+    (rst, cmdout1) = setFloatIpState("up")
+    if(not rst):
+        return "0#failed to do floatIp up, the reason is\n %s" % cmdout1
+
+    msg = "succeed to do floatIp up."
+
     dataNodePath = argv[2]
     ''' 重新拉起为启动 '''
     (rst, cmdout) = forceNodePrimary(dataNodePath)    
-    return "%d#%s" % (int(rst), cmdout)  # 重新拉起主节点失败
+    return "%d#%s\n%s" % (int(rst), msg, cmdout)  # 重新拉起主节点失败
     
         
 msg = ""
@@ -314,7 +322,7 @@ elif (sys.argv[1] == 'GET_CLUSTER_STATUS'):      # params： null
     msg = getClusterState(sys.argv)
 elif (sys.argv[1] == 'CLUSTER_REFRESH_CONFIG'):  # params： null
     msg = refreshclusterConfig(sys.argv)
-elif (sys.argv[1] == "CLEAR_NODE_FLOATIP"):  #  params： nodeListenAddr, nodeName
+elif (sys.argv[1] == "CLEAR_NODE_FLOATIP"):  #  params： nodeListenAddr, nodeName, datanodePath
     msg = clearNodeFloatIp(sys.argv)
 elif (sys.argv[1] == 'CLEAR_NODE_FLOATIP_BUILD'): # params: nodeListenAddr, nodeName, datanodePath
     msg = clearNodeFloatIpBuild(sys.argv)
