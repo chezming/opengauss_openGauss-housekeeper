@@ -62,28 +62,25 @@ class DbCluster():
                 if "cluster_state" in info:
                     self.state = info.split(":")[-1].strip()
                     flag1 = True
-                    continue
-                else:
-                    continue
-            # ÅĞ¶¨½Úµã×´Ì¬ÊÇ·ñÊúÏß·Ö¸î¡£µÈÓÚ1ÊÇÎªÊúÏß·Ö¸î£¬µÈÓÚ2·ÖĞĞÏÔÊ¾
+
+                continue
+            # åˆ¤å®šèŠ‚ç‚¹çŠ¶æ€æ˜¯å¦ç«–çº¿åˆ†å‰²ã€‚ç­‰äº1æ˜¯ä¸ºç«–çº¿åˆ†å‰²ï¼Œç­‰äº2åˆ†è¡Œæ˜¾ç¤º
             if dbClusterFormater == None:
                 if re.search(r"(node\s+node_ip\s+instance\s+state\s+\|)+", info) is not None:
                     dbClusterFormater = "v1"
-                    continue
                 elif re.search(r"(node\s+node_ip\s+port\s+instance\s+state)", info) is not None:
                     dbClusterFormater = "v2"
-                    continue
-                else:
-                    continue
 
-            # ËùÓĞdatanodeµÄ×´Ì¬ÊúÏß·Ö¸î
+                continue
+
+            # æ‰€æœ‰datanodeçš„çŠ¶æ€ç«–çº¿åˆ†å‰²
             if dbClusterFormater == 'v1':
                 if re.search(r"(([0-9]{1,3}\.){3}[0-9]{1,3}.*\|)+", info) != None:
                     for nodeInfo in info.split("|"):
                         dbNode = DbNode()
                         dbNode.buildByQuery(nodeInfo, dbClusterFormater)
                         self.nodes.append(dbNode)
-            # Ã¿¸ödatanodeµÄ×´Ì¬·ÖĞĞÏÔÊ¾
+            # æ¯ä¸ªdatanodeçš„çŠ¶æ€åˆ†è¡Œæ˜¾ç¤º
             elif dbClusterFormater == 'v2':
                 dbNode = DbNode()
                 dbNode.buildByQuery(info, dbClusterFormater)
