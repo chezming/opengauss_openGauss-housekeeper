@@ -56,31 +56,40 @@ class DbNode():
         self.nodeIp = info[2]
         self.deployState = info[3]
         self.state = info[4]
-        self.subState = info[5]
+        self.subState = info[5].strip()
         
         if(len(info) >= 7):
             self.supplementInfo = info[6]
         else: self.supplementInfo = ''
         
         self.timeStamp = time.localtime()
-        
-    def buildByQuery(self, nodeInfo):
-        for node in nodeInfo.split("|"):
+
+    def buildByQuery(self, nodeInfo, version):
+        tmp_info = None
+        if version == 'v1':
+            # 格式： 1 gauss11 90.90.169.51 6001 /home/huawei/install/data/dn P Primary Normal
             tmp_info = re.findall(
                 r"(\d+)\s+(.*)\s+(\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)\s+(\d+)\s+(/.*)\s+(P|S)"
                 "\s+([\w]*)\s+([\w\s]+)(\(.*\))?",
-                node.strip())
-            self.nodeId = tmp_info[0][0]
-            self.nodeName = tmp_info[0][1]
-            self.nodeIp =  tmp_info[0][2]
-            #self.instance = tmp_info[0][3]
-            #self.datanodePath = tmp_info[0][4]
-            self.deployState = tmp_info[0][5]
-            self.state = tmp_info[0][6]
-            self.subState = tmp_info[0][7]
-            if(len(tmp_info[0][8]) > 2):
-                self.supplementInfo = (tmp_info[0][8])[1:-1]
-            else: self.supplementInfo = ''
+                nodeInfo)
+        elif version == 'v2':
+            # 格式： 1 openGauss163 90.28.44.123 27790 6001 /data/liumin/pkg0720/cluster/dn1 P Primary Normal
+            tmp_info = re.findall(
+                r"(\d+)\s+(.*)\s+(\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)\s+\d+\s+(\d+)\s+(/.*)\s+(P|S)"
+                "\s+([\w]*)\s+([\w\s]+)(\(.*\))?",
+                nodeInfo)
+
+        self.nodeId = tmp_info[0][0]
+        self.nodeName = tmp_info[0][1]
+        self.nodeIp =  tmp_info[0][2]
+        #self.instance = tmp_info[0][3]
+        #self.datanodePath = tmp_info[0][4]
+        self.deployState = tmp_info[0][5]
+        self.state = tmp_info[0][6]
+        self.subState = tmp_info[0][7].strip()
+        if(len(tmp_info[0][8]) > 2):
+            self.supplementInfo = (tmp_info[0][8])[1:-1]
+        else: self.supplementInfo = ''
         self.timeStamp = time.localtime()
         
     def isPendingNode(self):

@@ -77,6 +77,7 @@ class Util:
             return (False, None)
         else:
             match = matches[0]
+            # 返回（term, lsn）二元组
             return (True, (match[2], match[3]))
            
 
