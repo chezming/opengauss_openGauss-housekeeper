@@ -360,7 +360,8 @@ class ClusterStateChecker():
 
             node = currDbClusterState.nodes[tmpNodeid]
 
-            if (node.state == "Pending"):
+            if node.isPendingNode():
+                system_log.debug("the node state '%s' is pending, wait for it to recover automatically" % str(node))
                 continue
             elif (node.state == "Standby"):
                 if (node.subState == "Normal"):
@@ -456,7 +457,8 @@ class ClusterStateChecker():
     def clearNodeFloatIp(self, nodeId):
         clearFlag = True
 
-        (rst, sshClient) = self.getSSHClient(nodeId)
+        # (rst, sshClient) = self.getSSHClient(nodeId)   # 如果sshClient故障，说明网卡有问题，为加快恢复，不立即建立ssh连接
+        sshClient = self.sshClients[nodeId]
         '''如果是单网卡，获取连接失败，说明主机故障或网卡故障；如果是双网卡说明监听网卡故障'''
         if (sshClient is None):
             clearFlag = False
@@ -482,10 +484,12 @@ class ClusterStateChecker():
             system_log.fatal("Cannot ssh connect candidate primary nodeId %d, need manual support!" % (nodeId + 1))
             return False
         else:
+            exeTimeout = 120   # 设置命令执行超时时间为120秒
             (rst, msg) = sshClient.execute(self.sshClients, nodeId, "SET_FLOATIP_FAILOVER",
                                            [self.dbNodeListenIps[nodeId] + ",%s" % config.floatIp,
                                             self.lastDbCluster.nodes[nodeId].nodeName,
-                                            config.dbDatanodePaths])
+                                            config.dbDatanodePaths],
+                                            exeTimeout )
             if (not rst):
                 return False
             else:
@@ -541,14 +545,17 @@ class ClusterStateChecker():
             system_log.fatal("Can not getting Primary node before Cluster became unavailable, DB cluster needs manual to recover")
             return
 
-        '''恢复故障前主节点'''
-        rst = self.recoveryPrimaryNodeBeforeUnaviable(primaryNodeIdBeforeUnaviables[0], currDbClusterState)
-        if (rst):  # 如果恢复主节点成功
-            self.recoveryFaultStandby(currDbClusterState, primaryNodeIdBeforeUnaviables)
-            return
+        # 如果不是sshClient问题，则优先恢复故障前主节点
+        if self.sshClients[primaryNodeIdBeforeUnaviables[0]] is not None:
+            '''恢复故障前主节点'''
+            rst = self.recoveryPrimaryNodeBeforeUnaviable(primaryNodeIdBeforeUnaviables[0], currDbClusterState)
+            if (rst):  # 如果恢复主节点成功
+                self.recoveryFaultStandby(currDbClusterState, primaryNodeIdBeforeUnaviables)
+                return
 
-        system_log.info("recover the nodeId %s to primary failed, so system will find the candidate primary node and make it to primary." % (
-                        primaryNodeIdBeforeUnaviables[0] + 1))
+            system_log.info("recover the nodeId %s to primary failed, so system will find the candidate primary node and make it to primary." % (
+                            primaryNodeIdBeforeUnaviables[0] + 1))
+
         ''' 找到候选主节点进行主备切换 '''
         (rst, candidatePrimaryNodeId) = self.getCandidatePrimary()
         if (not rst):

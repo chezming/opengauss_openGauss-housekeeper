@@ -52,16 +52,18 @@ class SSH_Client():
             system_log.fatal("nodeId %d, %s" % (nodeId + 1, traceback.format_exc()))
             return False
 
-    def execute(self, sshClients, nodeId, execmd, params=[]):
+    def execute(self, sshClients, nodeId, execmd, params=[], exeTimeout=None):
         revc_str = ""
         cmdLine = "%s %s" % (config.gghsAgentPath, execmd)
         for p in params:
             cmdLine = "%s %s" % (cmdLine, p)
 
         system_log.debug("Send request to nodeId %d: \n%s" % ((nodeId + 1), cmdLine))
+        if exeTimeout is None:
+            exeTimeout = int(config.sshTimeout)
         try:
 
-            _, stdout, _ = self.ssh.exec_command(cmdLine, timeout=int(config.sshTimeout), get_pty=True)
+            _, stdout, _ = self.ssh.exec_command(cmdLine, timeout=exeTimeout, get_pty=True)
             for info in stdout.readlines():
                 revc_str += info
         except BaseException:
