@@ -252,10 +252,10 @@ def setFloatIpFailover(argv):
     '''主备切换'''
     cmd = "gs_ctl failover -D %s" % dataNodePath
     (rst, cmdout) = doCommand(cmd)
-    if(not rst or not("failOver completed" in cmdout)):
-        return "0#db cluster failOver failed\n%s" % cmdout
+    if(not rst or not("failover completed" in cmdout)):
+        return "0#db cluster failover failed\n%s" % cmdout
     
-    msg = "db cluster failOver succeed"
+    msg = "db cluster failover succeed"
     
     '''修改浮动IP'''
     (rst, cmdout) = modifyNodeFloatIpState("up", nodeListenAddr, nodeName, dataNodePath)

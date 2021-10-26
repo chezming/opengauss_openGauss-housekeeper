@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-packageName="gghk-1.0.1-centos-7.6.tar.gz"
+packageName="gghk-1.0.2-centos-7.6.tar.gz"
 chmod u+x $HOME/gghc/GGHC.py
 chmod u+x $HOME/gghs/agent.py
 chmod u+x $HOME/bin/floatip.sh
